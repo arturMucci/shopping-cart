@@ -11,6 +11,7 @@
 
 const shopItemsContainer = document.querySelector('.items');
 const cartContainer = document.querySelector('.cart__items');
+const emptyCart = document.querySelector('.empty-cart');
 
 const createProductImageElement = (imageSource) => {
   const img = document.createElement('img');
@@ -29,19 +30,45 @@ const createProductImageElement = (imageSource) => {
 
 const removeFromCart = (event) => {
   cartContainer.removeChild(event.target);
+  const cartChildren = [...cartContainer.children];
+  const newStorage = cartChildren.map((child) => child.id);
+  localStorage.setItem('cartItems', JSON.stringify(newStorage));
+};
+
+const clearCart = () => {
+  const cartChildren = [...cartContainer.children];
+  localStorage.clear();
+  for (let i = cartChildren.length - 1; i >= 0; i -= 1) {
+    cartContainer.removeChild(cartContainer.lastChild);
+  }
 };
 
 const createCartItemElement = ({ id, title, price }) => {
   const li = document.createElement('li');
   li.className = 'cart__item';
+  li.id = `${id}`;
   li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
   li.addEventListener('click', removeFromCart);
   return li;
 };
 
+const ifDoSave = (id) => {
+  const test = JSON.parse(localStorage.getItem('cartItems'));
+  const storage = [];
+  if (test) {
+    test.forEach((el) => storage.push(el));
+    storage.push(id);
+    saveCartItems(storage);
+  } else {
+    storage.push(id);
+    saveCartItems(storage);
+  }
+};
+
 const addToCart = async (event) => {
   const itemId = event.target.parentElement.firstChild.innerText;
   cartContainer.appendChild(createCartItemElement(await fetchItem(itemId)));
+  ifDoSave(itemId);
 };
 
 const createCustomElement = (element, className, innerText) => {
@@ -90,11 +117,24 @@ const createProductItemElement = ({ id, title, thumbnail }) => {
 
 const createCatalog = async () => {
   const { results } = await fetchProducts('computador');
+  const loading = document.querySelector('.loading');
+  loading.parentElement.removeChild(loading);
   results.forEach((el) => {
     shopItemsContainer.appendChild(createProductItemElement(el));
   });
 };
 
+const fetchShoppingCart = (storage) => {
+  if (storage) {
+    storage.forEach(async (el) => {
+      cartContainer.appendChild(createCartItemElement(await fetchItem(el)));
+    });
+  }
+};
+
+emptyCart.addEventListener('click', clearCart);
+
 window.onload = () => {
   createCatalog();
+  fetchShoppingCart(JSON.parse(getSavedCartItems('cartItems')));
 };

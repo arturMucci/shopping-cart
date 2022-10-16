@@ -13,7 +13,7 @@ describe('3 - Teste a função saveCartItems', () => {
   test('if with something like saveCartItems(\'MLB1341706310\') localStorage.setItem is called with those parameters: ', () => {
     expect.assertions(1);
     const key = 'cartItems';
-    const value = 'MLB1341706310';
+    const value = "\"MLB1341706310\"";
     saveCartItems('MLB1341706310');
     expect(localStorage.setItem).toHaveBeenCalledWith(key, value);
   })
