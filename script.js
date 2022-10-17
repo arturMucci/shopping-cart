@@ -12,6 +12,7 @@
 const shopItemsContainer = document.querySelector('.items');
 const cartContainer = document.querySelector('.cart__items');
 const emptyCart = document.querySelector('.empty-cart');
+const totalPrice = document.querySelector('.total-price');
 
 const createProductImageElement = (imageSource) => {
   const img = document.createElement('img');
@@ -124,11 +125,16 @@ const createCatalog = async () => {
   });
 };
 
-const fetchShoppingCart = (storage) => {
+const totalsum = async (children) => {
+  const sum = children.reduce((acc, curr) => acc + curr.price, 0);
+  totalPrice.innerText = sum;
+};
+
+const fetchShoppingCart = async (storage) => {
   if (storage) {
-    storage.forEach(async (el) => {
-      cartContainer.appendChild(createCartItemElement(await fetchItem(el)));
-    });
+    const children = await Promise.all(storage.map((id) => fetchItem(id)));
+    children.forEach((el) => cartContainer.appendChild(createCartItemElement(el)));
+    totalsum(children);
   }
 };
 
